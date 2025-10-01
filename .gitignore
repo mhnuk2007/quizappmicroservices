@@ -1,0 +1,39 @@
+# === Java ===
+*.class
+*.jar
+*.war
+*.ear
+
+# === Maven ===
+target/
+dependency-reduced-pom.xml
+
+# === Gradle ===
+build/
+.gradle/
+out/
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# === VS Code ===
+.vscode/
+
+# === Logs ===
+*.log
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+
+# === Spring Boot configs (ignore env-specific files) ===
+application-*.yml
+application-*.properties
+
+# === Test outputs ===
+/test-output/
+/surefire-reports/
+/jacoco.exec
