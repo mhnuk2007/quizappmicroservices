@@ -1,6 +1,6 @@
 package com.learning.quizservice.dao;
 
-import com.learning.quizapp.model.Quiz;
+import com.learning.quizservice.model.Quiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
