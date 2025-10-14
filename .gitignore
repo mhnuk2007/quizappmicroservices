@@ -1,39 +1,105 @@
-# === Java ===
-*.class
-*.jar
+# ===============================
+# Java & Maven
+# ===============================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+.mvn/timing.properties.lock
+
+# Ignore Maven build outputs
+**/target/
 *.war
 *.ear
+*.class
 
-# === Maven ===
-target/
-dependency-reduced-pom.xml
-
-# === Gradle ===
-build/
-.gradle/
-out/
-
-# === IntelliJ IDEA ===
+# ===============================
+# IntelliJ IDEA
+# ===============================
 .idea/
 *.iml
 *.ipr
 *.iws
+out/
+workspace.xml
+tasks.xml
+usage.statistics.xml
+shelf/
 
-# === VS Code ===
-.vscode/
-
-# === Logs ===
+# ===============================
+# Logs and temporary files
+# ===============================
 *.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+*.rej
 
-# === OS Files ===
-.DS_Store
+# ===============================
+# OS specific files
+# ===============================
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
 
-# === Spring Boot configs (ignore env-specific files) ===
-application-*.yml
-application-*.properties
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# === Test outputs ===
-/test-output/
-/surefire-reports/
-/jacoco.exec
+# Linux
+*~
+.nfs*
+
+# ===============================
+# Environment & Security
+# ===============================
+*.env
+.env.local
+application-local.properties
+application-secret.properties
+application-prod.properties
+application-dev.properties
+
+# ===============================
+# Node/Frontend (if any future UI)
+# ===============================
+node_modules/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===============================
+# Backup and misc
+# ===============================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.bak
+*.tmp
+*.old
+
+# ===============================
+# JetBrains IDE indexes
+# ===============================
+.idea/libraries/
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+
+# ===============================
+# Custom - ignore local test data
+# ===============================
+**/test-output/
+**/logs/
+**/bin/
