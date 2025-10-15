@@ -5,8 +5,9 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 @Component
 public class ConfigurationFilter extends AbstractGatewayFilterFactory<ConfigurationFilter.Config> {
@@ -15,7 +16,7 @@ public class ConfigurationFilter extends AbstractGatewayFilterFactory<Configurat
     private RouteValidator validator;
 
     @Autowired
-    private RestTemplate template;
+    private WebClient.Builder webClientBuilder;
 
     public ConfigurationFilter() {
         super(Config.class);
@@ -26,35 +27,37 @@ public class ConfigurationFilter extends AbstractGatewayFilterFactory<Configurat
         return (exchange, chain) -> {
             if (validator.isSecured.test(exchange.getRequest())) {
 
-                // ✅ Check for Authorization header
                 if (!exchange.getRequest().getHeaders().containsKey("Authorization")) {
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Authorization header");
                 }
 
                 String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 
-                // ✅ Extract token
                 if (authHeader != null && authHeader.startsWith("Bearer ")) {
                     authHeader = authHeader.substring(7);
                 } else {
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Authorization header format");
                 }
 
-                try {
-                    // ✅ Call Auth-Service to validate token
-                    template.getForObject("http://localhost:8083/auth/validate?token=" + authHeader, String.class);
-                } catch (Exception e) {
-                    System.out.println("Invalid access: " + e.getMessage());
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to application");
-                }
+                // Reactive non-blocking call using WebClient
+                return webClientBuilder.build()
+                        .get()
+                        .uri("lb://AUTH-SERVICE/auth/validate?token=" + authHeader)
+                        .retrieve()
+                        .onStatus(status -> status.isError(),
+                                response -> response.createException().flatMap(error ->
+                                        Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token"))))
+                        // Convert ResponseSpec → Mono
+                        .bodyToMono(String.class)
+                        // Continue the filter chain after successful validation
+                        .flatMap(response -> chain.filter(exchange))
+                        // Handle unexpected errors gracefully
+                        .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access")));
             }
 
-            // ✅ Continue to next filter in chain
             return chain.filter(exchange);
         };
     }
 
-    public static class Config {
-        // Currently empty, but you can add config fields later if needed
-    }
+    public static class Config { }
 }
