@@ -85,13 +85,13 @@ docker-compose up --build
 
 ## 🚀 Access Points
 
-| Service | Example Endpoint |
-|----------|------------------|
-| Auth Service | `POST /auth/register`, `POST /auth/login` |
-| Quiz Service | `GET /quiz/get/{id}` |
-| Question Service | `GET /question/all` |
-| Gateway | `http://localhost:8080/...` |
-| Eureka Dashboard | `http://localhost:8761` |
+| Service | Example Endpoint                         |
+|----------|------------------------------------------|
+| Auth Service | `POST /auth/signup`, `POST /auth/signin` |
+| Quiz Service | `GET /quiz/get/{id}`                     |
+| Question Service | `GET /question/all`                      |
+| Gateway | `http://localhost:8080/...`              |
+| Eureka Dashboard | `http://localhost:8761`                  |
 
 ---
 
