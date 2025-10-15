@@ -6,13 +6,8 @@ import com.learning.quizservice.model.QuestionWrapper;
 import com.learning.quizservice.model.Quiz;
 import com.learning.quizservice.model.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class QuizService {
@@ -23,27 +18,32 @@ public class QuizService {
     private QuizInterface quizInterface;
 
 
-    public ResponseEntity<String> createQuiz(String category, int numQ, String title) {
-        List<Integer> questions = quizInterface.getQuestionsForQuiz(category, numQ).getBody();
+    public String createQuiz(String category, int numQ, String title) {
+        List<Integer> questions = quizInterface.getQuestionsForQuiz(category, numQ);
 
+        if (questions == null || questions.isEmpty()) {
+            return "Failed: No questions found for category " + category;
+        }
 
         Quiz quiz = new Quiz();
         quiz.setTitle(title);
         quiz.setQuestionIds(questions);
         quizDao.save(quiz);
 
-        return new ResponseEntity<>("Success", HttpStatus.OK);
+        return "Success";
     }
 
-    public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(int id) {
-        Quiz quiz = quizDao.findById(id).get();
+    public List<QuestionWrapper> getQuizQuestions(int id) {
+        Quiz quiz = quizDao.findById(id)
+                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + id));
         List<Integer> questionIds = quiz.getQuestionIds();
-        ResponseEntity<List<QuestionWrapper>> questionsForUser = quizInterface.getQuestionsFromId(questionIds);
-        return questionsForUser;
+        return quizInterface.getQuestionsFromId(questionIds);
     }
 
-    public ResponseEntity<Integer> calculateResult(int id, List<Response> responses) {
-            ResponseEntity<Integer> score = quizInterface.getScore(responses);
-        return score;
+    public Integer calculateResult(int id, List<Response> responses) {
+        // Verify quiz exists before calculating score
+        quizDao.findById(id)
+                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + id));
+        return quizInterface.getScore(responses);
     }
 }

@@ -25,37 +25,29 @@ public class ConfigurationFilter extends AbstractGatewayFilterFactory<Configurat
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            if (validator.isSecured.test(exchange.getRequest())) {
-
-                if (!exchange.getRequest().getHeaders().containsKey("Authorization")) {
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Authorization header");
-                }
-
-                String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
-
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    authHeader = authHeader.substring(7);
-                } else {
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Authorization header format");
-                }
-
-                // Reactive non-blocking call using WebClient
-                return webClientBuilder.build()
-                        .get()
-                        .uri("lb://AUTH-SERVICE/auth/validate?token=" + authHeader)
-                        .retrieve()
-                        .onStatus(status -> status.isError(),
-                                response -> response.createException().flatMap(error ->
-                                        Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token"))))
-                        // Convert ResponseSpec → Mono
-                        .bodyToMono(String.class)
-                        // Continue the filter chain after successful validation
-                        .flatMap(response -> chain.filter(exchange))
-                        // Handle unexpected errors gracefully
-                        .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access")));
+            if (!validator.isSecured.test(exchange.getRequest())) {
+                // Open route, no auth required
+                return chain.filter(exchange);
             }
 
-            return chain.filter(exchange);
+            String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header"));
+            }
+
+            String token = authHeader.substring(7);
+
+            // Reactive call to Auth-Service
+            return webClientBuilder.build()
+                    .get()
+                    .uri("http://AUTH-SERVICE/auth/validate?token=" + token)
+                    .retrieve()
+                    .onStatus(status -> status.isError(), clientResponse ->
+                            Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token")))
+                    .bodyToMono(String.class)
+                    .flatMap(response -> chain.filter(exchange));
+
         };
     }
 

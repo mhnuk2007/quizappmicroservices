@@ -12,6 +12,9 @@ public class Quiz {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String title;
+
     @ElementCollection
+    @CollectionTable(name = "quiz_questions", joinColumns = @JoinColumn(name = "quiz_id"))
+    @Column(name = "question_id")
     private List<Integer> questionIds;
 }

@@ -80,6 +80,7 @@
     </dependencyManagement>
 
     <build>
+        <finalName>quiz-service</finalName>
         <plugins>
             <!-- Compiler plugin (with Lombok annotation processing) -->
             <plugin>

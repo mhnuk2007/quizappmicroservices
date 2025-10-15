@@ -63,6 +63,7 @@
     </dependencyManagement>
 
     <build>
+        <finalName>api-gateway</finalName>
         <plugins>
             <!-- Spring Boot Maven Plugin -->
             <plugin>
